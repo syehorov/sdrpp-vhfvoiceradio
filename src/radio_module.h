@@ -11,7 +11,8 @@
 #include <dsp/chain.h>
 #include <dsp/noise_reduction/noise_blanker.h>
 #include <dsp/noise_reduction/fm_if.h>
-#include <dsp/noise_reduction/squelch.h>
+#include <dsp/noise_reduction/power_squelch.h>
+#include <dsp/noise_reduction/ctcss_squelch.h>
 #include <dsp/multirate/rational_resampler.h>
 #include <dsp/filter/deephasis.h>
 #include <core.h>
@@ -273,10 +274,10 @@ public:
 
         nb.init(NULL, 500.0 / 24000.0, 10.0);
         fmnr.init(NULL, 32);
-        squelch.init(NULL, MIN_SQUELCH);
+        powerSquelch.init(NULL, MIN_SQUELCH);
 
         ifChain.addBlock(&nb, false);
-        ifChain.addBlock(&squelch, false);
+        ifChain.addBlock(&powerSquelch, false);
         ifChain.addBlock(&fmnr, false);
 
         // Initialize audio DSP chain
@@ -718,7 +719,7 @@ private:
         setFMIFNREnabled(FMIFNRAllowed ? FMIFNREnabled : false);
 
         // Configure squelch
-        squelch.setLevel(squelchLevel);
+        powerSquelch.setLevel(squelchLevel);
         setSquelchEnabled(squelchEnabled);
 
         // Configure CTCSS
@@ -822,7 +823,7 @@ private:
     void setSquelchEnabled(bool enable) {
         squelchEnabled = enable;
         if (!selectedDemod) { return; }
-        ifChain.setBlockEnabled(&squelch, squelchEnabled, [=](dsp::stream<dsp::complex_t>* out){ selectedDemod->setInput(out); });
+        ifChain.setBlockEnabled(&powerSquelch, squelchEnabled, [=](dsp::stream<dsp::complex_t>* out){ selectedDemod->setInput(out); });
 
         // Save config
         config.acquire();
@@ -832,7 +833,7 @@ private:
 
     void setSquelchLevel(float level) {
         squelchLevel = std::clamp<float>(level, MIN_SQUELCH, MAX_SQUELCH);
-        squelch.setLevel(squelchLevel);
+        powerSquelch.setLevel(squelchLevel);
 
         // Save config
         config.acquire();
@@ -1070,7 +1071,7 @@ private:
     // IF chain
     dsp::chain<dsp::complex_t> ifChain;
     dsp::noise_reduction::FMIF fmnr;
-    dsp::noise_reduction::Squelch squelch;
+    dsp::noise_reduction::PowerSquelch powerSquelch;
     dsp::noise_reduction::NoiseBlanker nb;
 
     // Audio chain
