@@ -1,0 +1,13 @@
+Source: sdrpp-vhfvoiceradio
+Section: hamradio
+Priority: optional
+Maintainer: Serhii Yehorov <s.yegorov@gmail.com>
+Build-Depends: debhelper-compat (= 13), cmake, g++, libitpp-dev, sdrpp-dev, nlohmann-json3-dev
+Standards-Version: 4.6.2
+Homepage: https://sdrpp.org/
+Rules-Requires-Root: no
+
+Package: sdrpp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, sdrpp
+Description:  SDR++ demod plugin with DMR support
